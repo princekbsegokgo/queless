@@ -1,0 +1,33 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+<c:if test="${empty sessionScope.lang}">
+    <c:set var="lang" value="en" scope="session" />
+</c:if>
+<fmt:setLocale value="${sessionScope.lang}" />
+<fmt:setBundle basename="messages" var="msg" />
+
+<!DOCTYPE html>
+<html lang="${sessionScope.lang}">
+<head>
+    <meta charset="UTF-8">
+    <title><fmt:message key="app.name" bundle="${msg}" /></title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="${pageContext.request.contextPath}/index.jsp">
+        <fmt:message key="app.name" bundle="${msg}" />
+    </a>
+    <nav>
+        <a href="${pageContext.request.contextPath}/index.jsp"><fmt:message key="nav.home" bundle="${msg}" /></a>
+        <a href="${pageContext.request.contextPath}/joinqueue"><fmt:message key="nav.join" bundle="${msg}" /></a>
+        <a href="${pageContext.request.contextPath}/dashboard"><fmt:message key="nav.dashboard" bundle="${msg}" /></a>
+    </nav>
+    <div class="lang-switch">
+        <a href="${pageContext.request.contextPath}/language?lang=en&returnTo=${pageContext.request.servletPath}">EN</a>
+        |
+        <a href="${pageContext.request.contextPath}/language?lang=tn&returnTo=${pageContext.request.servletPath}">TN</a>
+    </div>
+</header>
+<main class="content">
