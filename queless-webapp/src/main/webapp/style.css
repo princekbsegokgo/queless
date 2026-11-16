@@ -469,3 +469,289 @@ input[type="text"] {
     .chart-columns { gap: 8px; height: 200px; }
     .chart-axis-labels { gap: 8px; font-size: 11px; }
 }
+
+/* Patient and staff portal separation (demo version). */
+.public-portal-page {
+    --queless-primary: #0f5d6e;
+    --queless-primary-dark: #104554;
+    background: #f5f9fb;
+    color: #243b4b;
+}
+.public-portal-page .site-header {
+    background: #fff;
+    border-bottom: 1px solid #dbe8eb;
+    color: #2a3950;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 3px 15px rgba(22, 70, 84, .04);
+}
+.public-portal-page .site-header .brand {
+    color: #0c576b;
+    font-size: 27px;
+    letter-spacing: -.9px;
+}
+.public-portal-page .brand-dot { color: #20a88d; }
+.public-portal-page .site-header nav {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.public-portal-page .site-header nav a {
+    color: #384d5e;
+    font-weight: 600;
+    margin: 0;
+}
+.public-portal-page .site-header nav a:hover,
+.public-portal-page .staff-link:hover { color: #078d78; }
+.header-extras { display: flex; align-items: center; gap: 18px; }
+.public-portal-page .lang-switch { display: flex; gap: 6px; color: #677b88; }
+.public-portal-page .lang-switch a,
+.public-portal-page .staff-link {
+    color: #32536c;
+    text-decoration: none;
+    font-size: 14px;
+}
+.public-portal-page .staff-link {
+    padding: 10px 15px;
+    border: 1px solid #a6c8d2;
+    border-radius: 8px;
+}
+.public-portal-page .portal-content {
+    width: min(1100px, calc(100% - 36px));
+    max-width: 1100px;
+    margin: 40px auto 75px;
+    padding: 0;
+}
+.portal-intro {
+    text-align: center;
+    padding: 55px 20px 42px;
+}
+.portal-intro.compact-intro { padding: 15px 10px 35px; }
+.portal-intro.staff-intro { padding-bottom: 18px; }
+.eyebrow, .small-label {
+    display: block;
+    color: #13816f;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+}
+.portal-intro h1 {
+    font-size: clamp(35px, 5vw, 58px);
+    line-height: 1.08;
+    margin: 14px 0;
+    letter-spacing: -1.7px;
+    color: #183b4b;
+}
+.portal-intro p {
+    color: #667b88;
+    font-size: clamp(16px, 2vw, 19px);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+.portal-choices, .patient-queues {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+.portal-choice, .patient-queue-card, .ticket-card, .staff-login-card {
+    box-sizing: border-box;
+    background: white;
+    border: 1px solid #dae7eb;
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(13, 49, 60, .05);
+    padding: 36px;
+}
+.portal-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+.portal-choice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    border-radius: 14px;
+    background: #e0f6f0;
+    color: #08796b;
+    font-weight: 700;
+    font-size: 21px;
+}
+.portal-choice.staff-choice .portal-choice-icon { background: #eeeafd; color: #6156ac; }
+.portal-choice h2, .patient-queue-card h2, .staff-login-card h2 {
+    margin: 22px 0 12px;
+    font-size: 26px;
+    color: #203e4f;
+}
+.portal-choice p { color: #607789; line-height: 1.65; margin: 0 0 26px; flex: 1; }
+.portal-button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 14px 24px;
+    border: 2px solid #0e7183;
+    border-radius: 9px;
+    background: #0e7183;
+    color: white;
+    text-decoration: none;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 50px;
+    text-align: center;
+}
+.portal-button:hover { background: #075d6e; border-color: #075d6e; }
+.portal-button.outline {
+    background: white;
+    border-color: #0e7183;
+    color: #0e6171;
+}
+.portal-button.outline:hover { background: #ebf6f8; }
+.portal-text-link { color: #166c80; margin-top: 16px; display: inline-block; }
+.portal-disclaimer {
+    max-width: 880px;
+    margin: 28px auto;
+    color: #637985;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.patient-queues { grid-template-columns: repeat(auto-fit, minmax(275px, 1fr)); }
+.patient-queue-heading, .ticket-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.patient-queue-card h2 { font-size: 22px; margin: 12px 0 10px; }
+.queue-availability {
+    border-radius: 20px;
+    background: #e7f0f2;
+    color: #465761;
+    padding: 7px 11px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.queue-availability.is-open { background: #e0f7ec; color: #06664b; }
+.queue-availability.is-paused { background: #fff1e3; color: #a35018; }
+.queue-counter { color: #6b7c87; border-top: 1px solid #e5edf0; padding-top: 18px; }
+.queue-counter strong { color: #183b4b; font-size: 23px; }
+.patient-join-form { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+.patient-join-form label, .staff-login-card label { font-size: 14px; color: #435967; font-weight: 700; }
+.public-portal-page input[type="text"],
+.public-portal-page input[type="password"] {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 8px;
+    border: 1px solid #bdcfd6;
+    min-width: 0;
+    flex: auto;
+    font: inherit;
+    background: #fff;
+    color: #223b49;
+}
+.public-portal-page input:focus-visible {
+    outline: 3px solid rgba(46, 150, 174, .25);
+    border-color: #087d8c;
+}
+.queue-help { color: #9c6619; line-height: 1.6; }
+.portal-notice, .portal-error {
+    box-sizing: border-box;
+    padding: 18px 20px;
+    background: #e6f7ef;
+    border: 1px solid #a8e0c7;
+    color: #155940;
+    border-radius: 10px;
+    margin: 18px 0;
+    line-height: 1.5;
+}
+.portal-error { background: #fff0ee; color: #9c3626; border-color: #f3c7bd; }
+.portal-notice.urgent { background: #d9f8e8; border-color: #54c78a; font-size: 19px; font-weight: 700; }
+.ticket-card { max-width: 690px; margin: auto; }
+.ticket-summary h2 { margin: 10px 0; color: #203e4f; }
+.ticket-number-label { text-align: center; color: #738490; margin: 30px 0 0; }
+.ticket-big-number {
+    font-size: clamp(60px, 11vw, 100px);
+    text-align: center;
+    color: #086c7d;
+    font-weight: 800;
+    letter-spacing: -4px;
+    margin: 0;
+}
+.ticket-name { text-align: center; font-weight: 700; margin: 0 0 28px; color: #4a6a78; }
+.ticket-progress {
+    background: #f1f9fa;
+    border: 1px solid #d2e7e9;
+    padding: 23px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    border-radius: 12px;
+}
+.ticket-progress strong { display: block; font-size: 35px; margin-top: 10px; color: #1d5063; }
+.ticket-status-note { color: #647b86; line-height: 1.6; }
+.ticket-actions { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-top: 25px; }
+.ticket-actions .portal-text-link { margin: 0; }
+.cancel-form { padding-top: 16px; }
+.cancel-button {
+    color: #9c3737;
+    background: transparent;
+    border: 1px solid #dea9a9;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+}
+.cancel-button:hover { background: #fff1f1; }
+.staff-login-card { max-width: 490px; margin: 0 auto; }
+.staff-login-card h2 { margin-top: 0; }
+.staff-login-card form { display: flex; flex-direction: column; gap: 16px; }
+.supporting-text { color: #778793; margin-top: 22px; }
+.supporting-text a { color: #176e83; }
+.department-selector {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: -10px 0 20px;
+    color: #5f6270;
+    font-size: 17px;
+}
+.department-selector select {
+    padding: 12px 16px;
+    border: 1px solid #9694cc;
+    border-radius: 8px;
+    background: white;
+    color: #292945;
+    min-width: 250px;
+    font: inherit;
+}
+.selected-department { color: #7a7b88; font-size: 15px; margin-left: auto; }
+.staff-utility-link {
+    font: inherit;
+    font-size: 15px;
+    color: #393262;
+    border: 1px solid #978be5;
+    border-radius: 7px;
+    background: #fff;
+    text-decoration: none;
+    padding: 11px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.staff-utility-link:hover { background: #eeeafa; }
+.staff-logout-form { margin: 0; }
+.dashboard-outline-btn:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 760px) {
+    .public-portal-page .site-header { padding: 16px; }
+    .public-portal-page .site-header nav { order: 3; width: 100%; }
+    .public-portal-page .portal-content { margin-top: 20px; }
+    .portal-choices { grid-template-columns: 1fr; }
+    .portal-choice, .patient-queue-card, .ticket-card, .staff-login-card { padding: 24px; }
+    .portal-intro { padding: 35px 12px; }
+    .dashboard-topbar .dashboard-header-actions { flex-wrap: wrap; }
+    .selected-department { margin-left: 0; }
+}
