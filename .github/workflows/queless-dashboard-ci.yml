@@ -47,19 +47,24 @@ jobs:
           grep -q 'Analytics' /tmp/dashboard.html
 
           curl -fsS 'http://localhost:8080/language?lang=tn&returnTo=/dashboard'             -o /dev/null -c /tmp/lang-cookies.txt -b /tmp/lang-cookies.txt
-          curl -fsS http://localhost:8080/dashboard -b /tmp/lang-cookies.txt             | grep -q 'Boto ya Kgwebo ya QueLess'
+          curl -fsS http://localhost:8080/dashboard -b /tmp/lang-cookies.txt -o /tmp/setswana.html
+          grep -q 'Boto ya Kgwebo ya QueLess' /tmp/setswana.html
 
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=pause http://localhost:8080/togglequeue)" = "302"
-          curl -fsS http://localhost:8080/joinqueue | grep -q 'currently paused'
+          curl -fsS http://localhost:8080/joinqueue -o /tmp/paused-join.html
+          grep -q 'currently paused' /tmp/paused-join.html
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
-          curl -fsS http://localhost:8080/dashboard | grep -q '>0<'
+          curl -fsS http://localhost:8080/dashboard -o /tmp/paused-dashboard.html
+          grep -q '>0<' /tmp/paused-dashboard.html
 
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=resume http://localhost:8080/togglequeue)" = "302"
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
-          curl -fsS http://localhost:8080/dashboard | grep -q 'SmokeTest'
+          curl -fsS http://localhost:8080/dashboard -o /tmp/joined-dashboard.html
+          grep -q 'SmokeTest' /tmp/joined-dashboard.html
 
           test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             http://localhost:8080/callnext)" = "302"
-          curl -fsS http://localhost:8080/dashboard | grep -q 'Serving'
+          curl -fsS http://localhost:8080/dashboard -o /tmp/serving-dashboard.html
+          grep -q 'Serving' /tmp/serving-dashboard.html
 
       - name: Print container logs on failure
         if: failure()
