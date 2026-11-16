@@ -152,6 +152,6 @@ public class DashboardServlet extends HttpServlet {
         req.setAttribute("selectedQueueId", selectedQueueId);
         req.setAttribute("weekBars", days);
         resp.setHeader("Cache-Control", "no-store");
-        req.getRequestDispatcher("/dashboard.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
     }
 }
