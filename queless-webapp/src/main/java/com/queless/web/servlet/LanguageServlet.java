@@ -1,31 +1,34 @@
 package com.queless.web.servlet;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
-/**
- * RQ05: lets the user switch between English and Setswana at any time.
- * The choice is stored in the session and read by every JSP page via
- * &lt;fmt:setLocale value="${sessionScope.lang}"/&gt;.
- */
+/** Local English/Setswana switch with a safe, allowlisted return destination. */
 @WebServlet("/language")
 public class LanguageServlet extends HttpServlet {
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            throws IOException {
         String lang = req.getParameter("lang");
-        if ("tn".equals(lang) || "en".equals(lang)) {
-            HttpSession session = req.getSession();
-            session.setAttribute("lang", lang);
+        if ("en".equals(lang) || "tn".equals(lang)) {
+            req.getSession().setAttribute("lang", lang);
         }
-        String returnTo = req.getParameter("returnTo");
-        resp.sendRedirect(req.getContextPath() + (returnTo != null ? returnTo : "/index.jsp"));
+        String path = req.getParameter("returnTo");
+        if (path == null || !java.util.Set.of(
+                "/", "/index.jsp", "/joinqueue", "/status",
+                "/dashboard", "/staff/login").contains(path)) {
+            path = "/index.jsp";
+        }
+        String ticket = req.getParameter("ticket");
+        if ("/status".equals(path) && ticket != null
+                && ticket.matches("[A-Za-z0-9_-]{32}")) {
+            path += "?ticket=" + URLEncoder.encode(ticket, StandardCharsets.UTF_8);
+        }
+        resp.sendRedirect(req.getContextPath() + path);
     }
 }

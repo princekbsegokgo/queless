@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Shared in-memory demo queue. Mutations are synchronized to prevent two patients
  * receiving the same position or two operators calling the same patient.
- * IMPORTANT: no persistent database or staff authentication is configured.
+ * IMPORTANT: no persistent database is configured; records reset on restart.
  */
 public class QueueManager {
     public static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Africa/Gaborone");
@@ -40,6 +40,10 @@ public class QueueManager {
                 businessId, "Princess Marina Clinic", "Healthcare", Business.Tier.PRO));
         long queueId = queueIdSeq.getAndIncrement();
         queues.put(queueId, new Queue(queueId, businessId, "General Consultation"));
+        long pharmacyQueueId = queueIdSeq.getAndIncrement();
+        queues.put(pharmacyQueueId, new Queue(pharmacyQueueId, businessId, "Pharmacy"));
+        long labQueueId = queueIdSeq.getAndIncrement();
+        queues.put(labQueueId, new Queue(labQueueId, businessId, "Laboratory"));
     }
 
     public Collection<Business> getAllBusinesses() {
@@ -59,6 +63,41 @@ public class QueueManager {
 
     public Optional<Ticket> getTicket(long ticketId) {
         return Optional.ofNullable(tickets.get(ticketId));
+    }
+
+    public Optional<Ticket> getTicketByAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.length() != 32) return Optional.empty();
+        return tickets.values().stream()
+                .filter(t -> accessToken.equals(t.getAccessToken()))
+                .findFirst();
+    }
+
+    public int getPeopleAhead(Ticket ticket) {
+        if (ticket.getStatus() != Ticket.Status.WAITING
+                && ticket.getStatus() != Ticket.Status.NOTIFIED) return 0;
+        int waitingBefore = (int) getQueueStatus(ticket.getQueueId()).stream()
+                .filter(t -> t.getPosition() < ticket.getPosition())
+                .count();
+        int servingBefore = (int) tickets.values().stream()
+                .filter(t -> t.getQueueId() == ticket.getQueueId()
+                        && t.getStatus() == Ticket.Status.SERVING
+                        && t.getPosition() < ticket.getPosition())
+                .count();
+        return waitingBefore + servingBefore;
+    }
+
+    public int estimateWaitMinutes(Ticket ticket) {
+        return getPeopleAhead(ticket) * AVERAGE_SERVICE_MINUTES;
+    }
+
+    public synchronized boolean cancelTicketByAccessToken(String accessToken) {
+        Optional<Ticket> ticket = getTicketByAccessToken(accessToken);
+        if (ticket.isEmpty()) return false;
+        Ticket t = ticket.get();
+        if (t.getStatus() != Ticket.Status.WAITING
+                && t.getStatus() != Ticket.Status.NOTIFIED) return false;
+        t.setStatus(Ticket.Status.CANCELLED);
+        return true;
     }
 
     public List<Ticket> getAllTickets() {
@@ -139,6 +178,13 @@ public class QueueManager {
         });
         recordPeak(queueId);
         evaluateNotificationThresholds(queueId, queue.getCurrentServingPosition());
+        return true;
+    }
+
+    public synchronized boolean completeServingTicket(long queueId) {
+        Optional<Ticket> active = getServingTicket(queueId);
+        if (active.isEmpty()) return false;
+        active.get().setStatus(Ticket.Status.SERVED);
         return true;
     }
 

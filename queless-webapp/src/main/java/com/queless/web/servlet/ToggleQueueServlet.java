@@ -27,8 +27,17 @@ public class ToggleQueueServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         boolean open = "resume".equals(req.getParameter("action"));
-        queueManager.setQueueOpen(1L, open);
+        long queueId;
+        try { queueId = Long.parseLong(req.getParameter("queueId")); }
+        catch (Exception e) { resp.sendError(400, "Choose a queue"); return; }
+        if (!"pause".equals(req.getParameter("action"))
+                && !"resume".equals(req.getParameter("action"))) {
+            resp.sendError(400, "Invalid action"); return;
+        }
+        if (!queueManager.setQueueOpen(queueId, open)) {
+            resp.sendError(404); return;
+        }
         resp.sendRedirect(req.getContextPath()
-                + "/dashboard?result=" + (open ? "resumed" : "paused"));
+                + "/dashboard?queueId=" + queueId + "&result=" + (open ? "resumed" : "paused"));
     }
 }

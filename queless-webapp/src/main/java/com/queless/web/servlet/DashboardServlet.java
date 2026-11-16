@@ -4,6 +4,7 @@ import com.queless.web.model.Ticket;
 import com.queless.web.model.Queue;
 import com.queless.web.service.AppInitListener;
 import com.queless.web.service.QueueManager;
+import com.queless.web.security.RequestSecurity;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
  */
 @WebServlet("/dashboard")
 public class DashboardServlet extends HttpServlet {
-    private static final long DEMO_QUEUE_ID = 1L;
     private static final ZoneId ZONE = QueueManager.CLINIC_TIME_ZONE;
     private QueueManager queueManager;
 
@@ -62,18 +62,22 @@ public class DashboardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        Queue queue = queueManager.getQueue(DEMO_QUEUE_ID).orElse(null);
+        long selectedQueueId = 1L;
+        try {
+            if (req.getParameter("queueId") != null)
+                selectedQueueId = Long.parseLong(req.getParameter("queueId"));
+        } catch (NumberFormatException ex) { selectedQueueId = 1L; }
+        Queue queue = queueManager.getQueue(selectedQueueId).orElse(null);
         if (queue == null) {
             resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Demo queue unavailable");
             return;
         }
 
         var business = queueManager.getAllBusinesses().stream().findFirst().orElse(null);
-        List<Ticket> allTickets = queueManager.getAllTickets().stream()
-                .filter(t -> t.getQueueId() == DEMO_QUEUE_ID)
-                .collect(Collectors.toList());
-        List<Ticket> waitingTickets = queueManager.getQueueStatus(DEMO_QUEUE_ID);
-        Ticket servingTicket = queueManager.getServingTicket(DEMO_QUEUE_ID).orElse(null);
+        List<Queue> businessQueues = queueManager.getQueuesForBusiness(queue.getBusinessId());
+        List<Ticket> allTickets = queueManager.getAllTickets();
+        List<Ticket> waitingTickets = queueManager.getQueueStatus(selectedQueueId);
+        Ticket servingTicket = queueManager.getServingTicket(selectedQueueId).orElse(null);
 
         LocalDate today = LocalDate.now(ZONE);
         long servedToday = allTickets.stream()
@@ -131,19 +135,23 @@ public class DashboardServlet extends HttpServlet {
         }
 
         req.setAttribute("queue", queue);
+        req.setAttribute("queues", businessQueues);
+        req.setAttribute("csrfToken", RequestSecurity.csrfToken(req));
         req.setAttribute("business", business);
         req.setAttribute("waitingTickets", waitingTickets);
         req.setAttribute("servingTicket", servingTicket);
         req.setAttribute("elapsedWaitMinutes", elapsedWaitMinutes);
         req.setAttribute("activeQueues", queueManager.getQueuesForBusiness(queue.getBusinessId())
                 .stream().filter(Queue::isOpen).count());
-        req.setAttribute("waitingCount", waitingTickets.size());
+        req.setAttribute("waitingCount", businessQueues.stream()
+                .mapToInt(q -> queueManager.getQueueStatus(q.getQueueId()).size()).sum());
         req.setAttribute("avgWaitMinutes", avgWaitMinutes);
         req.setAttribute("servedToday", servedToday);
         req.setAttribute("servedThisMonth", servedThisMonth);
         req.setAttribute("peakPeriod", peakPeriod);
+        req.setAttribute("selectedQueueId", selectedQueueId);
         req.setAttribute("weekBars", days);
         resp.setHeader("Cache-Control", "no-store");
-        req.getRequestDispatcher("/dashboard.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/dashboard.jsp").forward(req, resp);
     }
 }

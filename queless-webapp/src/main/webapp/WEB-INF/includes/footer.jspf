@@ -1,6 +1,7 @@
 </main>
 <footer class="site-footer">
-    <p>QueLess &mdash; Botswana Accountancy College project demo</p>
+    <p>QueLess &mdash; Botswana Accountancy College healthcare queue demonstration</p>
+    <p>Patients join from the public portal. Staff actions require a separate sign-in.</p>
 </footer>
 </body>
 </html>

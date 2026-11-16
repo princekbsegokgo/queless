@@ -1,33 +1,49 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-
 <c:if test="${empty sessionScope.lang}">
     <c:set var="lang" value="en" scope="session" />
 </c:if>
 <fmt:setLocale value="${sessionScope.lang}" />
 <fmt:setBundle basename="messages" var="msg" />
-
 <!DOCTYPE html>
 <html lang="${sessionScope.lang}">
 <head>
     <meta charset="UTF-8">
-    <title><fmt:message key="app.name" bundle="${msg}" /></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QueLess | Clinic queues</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/style.css">
 </head>
-<body>
+<body class="public-portal-page">
 <header class="site-header">
-    <a class="brand" href="${pageContext.request.contextPath}/index.jsp">
-        <fmt:message key="app.name" bundle="${msg}" />
-    </a>
-    <nav>
-        <a href="${pageContext.request.contextPath}/index.jsp"><fmt:message key="nav.home" bundle="${msg}" /></a>
-        <a href="${pageContext.request.contextPath}/joinqueue"><fmt:message key="nav.join" bundle="${msg}" /></a>
-        <a href="${pageContext.request.contextPath}/dashboard"><fmt:message key="nav.dashboard" bundle="${msg}" /></a>
+    <a class="brand" href="${pageContext.request.contextPath}/">QueLess<span class="brand-dot">.</span></a>
+    <nav aria-label="Public navigation">
+        <a href="${pageContext.request.contextPath}/"><fmt:message key="nav.home" bundle="${msg}"/></a>
+        <a href="${pageContext.request.contextPath}/joinqueue"><fmt:message key="nav.join" bundle="${msg}"/></a>
+        <c:if test="${not empty sessionScope.myTicketToken}">
+            <a href="${pageContext.request.contextPath}/status?ticket=${sessionScope.myTicketToken}"><fmt:message key="nav.myTicket" bundle="${msg}"/></a>
+        </c:if>
     </nav>
-    <div class="lang-switch">
-        <a href="${pageContext.request.contextPath}/language?lang=en&returnTo=${pageContext.request.servletPath}">EN</a>
-        |
-        <a href="${pageContext.request.contextPath}/language?lang=tn&returnTo=${pageContext.request.servletPath}">TN</a>
+    <div class="header-extras">
+        <c:set var="localeReturnTo" value="/index.jsp"/>
+        <c:if test="${not empty queues}"><c:set var="localeReturnTo" value="/joinqueue"/></c:if>
+        <c:if test="${not empty ticket}"><c:set var="localeReturnTo" value="/status"/></c:if>
+        <c:if test="${requestScope.staffConfigured ne null}"><c:set var="localeReturnTo" value="/staff/login"/></c:if>
+        <c:url var="englishLink" value="/language">
+            <c:param name="lang" value="en"/>
+            <c:param name="returnTo" value="${localeReturnTo}"/>
+            <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
+        </c:url>
+        <c:url var="setswanaLink" value="/language">
+            <c:param name="lang" value="tn"/>
+            <c:param name="returnTo" value="${localeReturnTo}"/>
+            <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
+        </c:url>
+        <div class="lang-switch">
+            <a href="${englishLink}">EN</a>
+            <span>/</span>
+            <a href="${setswanaLink}">TSW</a>
+        </div>
+        <a class="staff-link" href="${pageContext.request.contextPath}/staff/login"><fmt:message key="nav.staff" bundle="${msg}"/></a>
     </div>
 </header>
-<main class="content">
+<main class="content portal-content">

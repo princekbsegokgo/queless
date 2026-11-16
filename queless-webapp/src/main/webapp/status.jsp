@@ -2,52 +2,64 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ include file="/WEB-INF/includes/header.jspf" %>
-<c:if test="${ticket.status ne 'SERVED'}">
-    <meta http-equiv="refresh" content="4">
+<c:if test="${ticket.status ne 'SERVED' and ticket.status ne 'CANCELLED'}">
+    <script>window.setTimeout(function () { window.location.reload(); }, 6000);</script>
 </c:if>
 
-<h1><fmt:message key="status.title" bundle="${msg}" /></h1>
-
-<c:choose>
-    <c:when test="${ticket.status eq 'SERVED'}">
-        <p class="status-message success"><fmt:message key="status.served" bundle="${msg}" /></p>
-    </c:when>
-    <c:when test="${ticket.status eq 'SERVING'}">
-        <p class="status-message success"><fmt:message key="status.yourTurn" bundle="${msg}" /></p>
-        <p class="status-position">
-            <fmt:message key="status.position" bundle="${msg}">
-                <fmt:param value="${ticket.position}" />
-            </fmt:message>
-        </p>
-        <p class="auto-note"><fmt:message key="status.autoNote" bundle="${msg}" /></p>
-    </c:when>
-    <c:when test="${ticket.status eq 'CANCELLED'}">
-        <p><fmt:message key="status.cancelled" bundle="${msg}" /></p>
-    </c:when>
-    <c:otherwise>
-        <p class="status-position">
-            <fmt:message key="status.position" bundle="${msg}">
-                <fmt:param value="${ticket.position}" />
-            </fmt:message>
-        </p>
-        <p>
-            <fmt:message key="status.nowServing" bundle="${msg}">
-                <fmt:param value="${nowServing}" />
-            </fmt:message>
-        </p>
-        <p>
-            <fmt:message key="status.estimatedWait" bundle="${msg}">
-                <fmt:param value="${estimatedWaitMinutes}" />
-            </fmt:message>
-        </p>
-        <c:if test="${not empty ticket.lastNotificationMessage}">
-            <p class="notification-banner"><c:out value="${ticket.lastNotificationMessage}" /></p>
-        </c:if>
-        <p class="auto-note"><fmt:message key="status.autoNote" bundle="${msg}" /></p>
-        <a class="button secondary" href="${pageContext.request.contextPath}/status?ticketId=${ticket.ticketId}">
-            <fmt:message key="status.refresh" bundle="${msg}" />
-        </a>
-    </c:otherwise>
-</c:choose>
-
+<section class="portal-intro compact-intro">
+    <span class="eyebrow"><fmt:message key="status.privateTicket" bundle="${msg}"/></span>
+    <h1><fmt:message key="status.inQueue" bundle="${msg}"/></h1>
+    <p><fmt:message key="status.trackingNotice" bundle="${msg}"/></p>
+</section>
+<article class="ticket-card">
+    <div class="ticket-summary">
+        <div>
+            <span class="small-label"><fmt:message key="join.department" bundle="${msg}"/></span>
+            <h2><c:out value="${queue.name}"/></h2>
+        </div>
+        <span class="queue-availability ${ticket.status eq 'SERVING' ? 'is-open' : ''}">
+            <c:out value="${ticket.status}"/>
+        </span>
+    </div>
+    <p class="ticket-number-label"><fmt:message key="status.ticketNumber" bundle="${msg}"/></p>
+    <p class="ticket-big-number">#${ticket.position}</p>
+    <p class="ticket-name"><c:out value="${ticket.userName}"/></p>
+    <c:choose>
+        <c:when test="${ticket.status eq 'SERVING'}">
+            <p class="portal-notice urgent" role="status"><fmt:message key="status.turnNotice" bundle="${msg}"/></p>
+        </c:when>
+        <c:when test="${ticket.status eq 'SERVED'}">
+            <p class="portal-notice" role="status"><fmt:message key="status.completeNotice" bundle="${msg}"/></p>
+        </c:when>
+        <c:when test="${ticket.status eq 'CANCELLED'}">
+            <p class="portal-notice" role="status"><fmt:message key="status.cancelNotice" bundle="${msg}"/></p>
+        </c:when>
+        <c:otherwise>
+            <div class="ticket-progress">
+                <div>
+                    <span class="small-label"><fmt:message key="status.peopleAhead" bundle="${msg}"/></span>
+                    <strong>${peopleAhead}</strong>
+                </div>
+                <div>
+                    <span class="small-label"><fmt:message key="status.waitLabel" bundle="${msg}"/></span>
+                    <strong>${estimatedWaitMinutes} min</strong>
+                </div>
+            </div>
+            <p class="ticket-status-note"><fmt:message key="status.nowServingNotice" bundle="${msg}"><fmt:param value="${nowServing}"/></fmt:message> <fmt:message key="status.keepOpen" bundle="${msg}"/></p>
+            <c:if test="${not empty ticket.lastNotificationMessage}">
+                <p class="portal-notice" role="status"><c:out value="${ticket.lastNotificationMessage}"/></p>
+            </c:if>
+            <form method="post" action="${pageContext.request.contextPath}/cancel" class="cancel-form">
+                <input type="hidden" name="_csrf" value="${csrfToken}">
+                <input type="hidden" name="ticket" value="${ticket.accessToken}">
+                <button class="cancel-button" type="submit"><fmt:message key="status.cancelButton" bundle="${msg}"/></button>
+            </form>
+        </c:otherwise>
+    </c:choose>
+    <div class="ticket-actions">
+        <a class="portal-button outline" href="${pageContext.request.contextPath}/status?ticket=${ticket.accessToken}"><fmt:message key="status.refreshTicket" bundle="${msg}"/></a>
+        <a class="portal-text-link" href="${pageContext.request.contextPath}/joinqueue"><fmt:message key="status.allDepartments" bundle="${msg}"/></a>
+    </div>
+</article>
+<p class="portal-disclaimer"><fmt:message key="status.disclaimer" bundle="${msg}"/></p>
 <%@ include file="/WEB-INF/includes/footer.jspf" %>
