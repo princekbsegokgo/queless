@@ -4,7 +4,11 @@ import com.queless.web.model.Business;
 import com.queless.web.model.Queue;
 import com.queless.web.model.Ticket;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,50 +17,40 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
- * Central queue operations and state management (RQ01, RQ02, RQ03), as
- * named in Section 4.1 of the project report. Uses an in-memory store for
- * this MVP; a production build would replace the maps below with a real
- * database (matching the ERD in Figure 3), consistent with RQ04's
- * requirement to protect stored data.
- *
- * This class is a singleton, shared across servlet requests via
- * ServletContext, so all users see the same live queue state.
+ * Shared in-memory demo queue. Mutations are synchronized to prevent two patients
+ * receiving the same position or two operators calling the same patient.
+ * IMPORTANT: no persistent database or staff authentication is configured.
  */
 public class QueueManager {
+    public static final ZoneId CLINIC_TIME_ZONE = ZoneId.of("Africa/Gaborone");
+    private static final int AVERAGE_SERVICE_MINUTES = 5;
 
     private final Map<Long, Business> businesses = new ConcurrentHashMap<>();
     private final Map<Long, Queue> queues = new ConcurrentHashMap<>();
     private final Map<Long, Ticket> tickets = new ConcurrentHashMap<>();
-
+    private final Map<LocalDate, Integer> dailyPeakWaiting = new ConcurrentHashMap<>();
     private final AtomicLong businessIdSeq = new AtomicLong(1);
     private final AtomicLong queueIdSeq = new AtomicLong(1);
     private final AtomicLong ticketIdSeq = new AtomicLong(1);
-
     private final NotificationService notificationService = new NotificationService();
 
     public QueueManager() {
-        seedDemoData();
-    }
-
-    private void seedDemoData() {
         long businessId = businessIdSeq.getAndIncrement();
         businesses.put(businessId, new Business(
-            businessId, "Princess Marina Hospital - Outpatients", "Healthcare", Business.Tier.PRO
-        ));
+                businessId, "Princess Marina Clinic", "Healthcare", Business.Tier.PRO));
         long queueId = queueIdSeq.getAndIncrement();
         queues.put(queueId, new Queue(queueId, businessId, "General Consultation"));
     }
 
-    // ---- Read operations (RQ01, RQ03) ----
-
     public Collection<Business> getAllBusinesses() {
-        return businesses.values();
+        return List.copyOf(businesses.values());
     }
 
     public List<Queue> getQueuesForBusiness(long businessId) {
         return queues.values().stream()
-            .filter(q -> q.getBusinessId() == businessId)
-            .collect(Collectors.toList());
+                .filter(q -> q.getBusinessId() == businessId)
+                .sorted(Comparator.comparingLong(Queue::getQueueId))
+                .collect(Collectors.toList());
     }
 
     public Optional<Queue> getQueue(long queueId) {
@@ -67,56 +61,94 @@ public class QueueManager {
         return Optional.ofNullable(tickets.get(ticketId));
     }
 
-    /** RQ03: everyone still waiting or notified in a queue, ordered by position. */
-    public List<Ticket> getQueueStatus(long queueId) {
-        return tickets.values().stream()
-            .filter(t -> t.getQueueId() == queueId)
-            .filter(t -> t.getStatus() == Ticket.Status.WAITING || t.getStatus() == Ticket.Status.NOTIFIED)
-            .sorted((a, b) -> Integer.compare(a.getPosition(), b.getPosition()))
-            .collect(Collectors.toList());
+    public List<Ticket> getAllTickets() {
+        return new ArrayList<>(tickets.values());
     }
 
-    // ---- Write operations ----
+    public List<Ticket> getQueueStatus(long queueId) {
+        return tickets.values().stream()
+                .filter(t -> t.getQueueId() == queueId)
+                .filter(t -> t.getStatus() == Ticket.Status.WAITING
+                          || t.getStatus() == Ticket.Status.NOTIFIED)
+                .sorted(Comparator.comparingInt(Ticket::getPosition))
+                .collect(Collectors.toList());
+    }
 
-    /** RQ01: reserve the next position in a queue for a user, remotely. */
-    public Ticket joinQueue(long queueId, String userName) {
+    public Optional<Ticket> getServingTicket(long queueId) {
+        return tickets.values().stream()
+                .filter(t -> t.getQueueId() == queueId
+                          && t.getStatus() == Ticket.Status.SERVING)
+                .findFirst();
+    }
+
+    /** Highest number waiting at once today, used for the weekly analytics chart. */
+    public int getDailyPeakWaiting(LocalDate day) {
+        return dailyPeakWaiting.getOrDefault(day, 0);
+    }
+
+    private void recordPeak(long queueId) {
+        int count = getQueueStatus(queueId).size();
+        dailyPeakWaiting.merge(LocalDate.now(CLINIC_TIME_ZONE), count, Math::max);
+    }
+
+    /** Throws IllegalStateException if a queue is paused or does not exist. */
+    public synchronized Ticket joinQueue(long queueId, String userName) {
+        Queue queue = queues.get(queueId);
+        if (queue == null || !queue.isOpen()) {
+            throw new IllegalStateException("Queue unavailable or paused");
+        }
+        String safeName = userName == null || userName.isBlank()
+                ? "Guest" : userName.trim();
+        if (safeName.length() > 80) safeName = safeName.substring(0, 80);
         int nextPosition = tickets.values().stream()
-            .filter(t -> t.getQueueId() == queueId)
-            .mapToInt(Ticket::getPosition)
-            .max()
-            .orElse(0) + 1;
-
-        Ticket ticket = new Ticket(ticketIdSeq.getAndIncrement(), queueId, userName, nextPosition);
+                .filter(t -> t.getQueueId() == queueId)
+                .mapToInt(Ticket::getPosition)
+                .max().orElse(0) + 1;
+        Ticket ticket = new Ticket(ticketIdSeq.getAndIncrement(), queueId,
+                safeName, nextPosition);
         tickets.put(ticket.getTicketId(), ticket);
+        recordPeak(queueId);
         return ticket;
     }
 
-    /** Allows a user to leave the queue before being served. */
-    public void leaveQueue(long ticketId) {
+    public synchronized void leaveQueue(long ticketId) {
         Ticket ticket = tickets.get(ticketId);
-        if (ticket != null) {
+        if (ticket != null && (ticket.getStatus() == Ticket.Status.WAITING
+                             || ticket.getStatus() == Ticket.Status.NOTIFIED)) {
             ticket.setStatus(Ticket.Status.CANCELLED);
         }
     }
 
     /**
-     * RQ03: business advances the queue by one. Marks the current front
-     * ticket as served, then evaluates RQ02 notification thresholds for
-     * whoever is now next.
+     * Finish the currently serving ticket, then call the next waiting ticket.
+     * Returns false if the queue is paused or nobody can be advanced.
      */
-    public void callNextTicket(long queueId) {
+    public synchronized boolean callNextTicket(long queueId) {
         Queue queue = queues.get(queueId);
-        if (queue == null) return;
+        if (queue == null || !queue.isOpen()) return false;
 
-        getQueueStatus(queueId).stream().findFirst().ifPresent(front -> {
-            front.setStatus(Ticket.Status.SERVED);
-            queue.advanceServingPosition();
+        Optional<Ticket> current = getServingTicket(queueId);
+        Optional<Ticket> next = getQueueStatus(queueId).stream().findFirst();
+        if (current.isEmpty() && next.isEmpty()) return false;
+
+        current.ifPresent(ticket -> ticket.setStatus(Ticket.Status.SERVED));
+        next.ifPresent(ticket -> {
+            ticket.setStatus(Ticket.Status.SERVING);
+            queue.setCurrentServingPosition(ticket.getPosition());
+            notificationService.notifyTurn(ticket);
         });
-
+        recordPeak(queueId);
         evaluateNotificationThresholds(queueId, queue.getCurrentServingPosition());
+        return true;
     }
 
-    /** RQ01 (estimated wait): positions ahead multiplied by an assumed average service time. */
+    public synchronized boolean setQueueOpen(long queueId, boolean open) {
+        Queue queue = queues.get(queueId);
+        if (queue == null) return false;
+        queue.setOpen(open);
+        return true;
+    }
+
     public int estimateWaitTimeMinutes(long queueId, int position) {
         Queue queue = queues.get(queueId);
         if (queue == null) return 0;
@@ -128,13 +160,9 @@ public class QueueManager {
         getQueueStatus(queueId).stream().findFirst().ifPresent(next -> {
             int positionsAway = next.getPosition() - servingPosition;
             if (positionsAway == NotificationService.NOTIFY_FAR_THRESHOLD
-                || positionsAway == NotificationService.NOTIFY_NEAR_THRESHOLD) {
+                    || positionsAway == NotificationService.NOTIFY_NEAR_THRESHOLD) {
                 notificationService.sendPush(next, positionsAway);
-            } else if (positionsAway <= 0) {
-                notificationService.notifyTurn(next);
             }
         });
     }
-
-    private static final int AVERAGE_SERVICE_MINUTES = 5;
 }

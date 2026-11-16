@@ -170,3 +170,302 @@ input[type="text"] {
     color: #888;
     font-size: 0.85rem;
 }
+
+/* ---------------------------------------------------------------
+   QueLess Business Dashboard: screenshot-matched, scoped styles.
+   Existing patient-facing pages keep their original appearance.
+   --------------------------------------------------------------- */
+.business-dashboard-page {
+    background: #fff;
+    color: #302f34;
+    font-family: Arial, "Segoe UI", sans-serif;
+}
+
+.biz-dashboard {
+    max-width: 2060px;
+    padding: 0 30px;
+    margin: 30px auto 36px;
+}
+
+.dashboard-topbar {
+    box-sizing: border-box;
+    min-height: 104px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 36px;
+    background: #f5f3fa;
+    border: 2px solid #9890ee;
+    border-radius: 11px;
+    color: #2b254f;
+}
+.dashboard-topbar h1 {
+    margin: 0;
+    font-size: clamp(24px, 1.75vw, 33px);
+    font-weight: 700;
+    line-height: 1.2;
+}
+.dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+.dashboard-language, .dashboard-clinic {
+    min-height: 50px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #8c82eb;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 20px;
+    white-space: nowrap;
+}
+.dashboard-language {
+    padding: 0 17px;
+    gap: 5px;
+}
+.dashboard-language a {
+    color: #302e50;
+    text-decoration: none;
+    padding: 5px 3px;
+}
+.dashboard-language a:hover, .dashboard-language a:focus-visible {
+    text-decoration: underline;
+}
+.dashboard-language .selected { font-weight: 700; }
+.dashboard-clinic {
+    min-width: 237px;
+    max-width: 280px;
+    padding: 0 18px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+}
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 23px;
+    margin: 28px 0 34px;
+}
+.dashboard-metric {
+    box-sizing: border-box;
+    min-height: 176px;
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 32px 36px 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+}
+.metric-caption {
+    font-size: clamp(16px, 1.2vw, 22px);
+    font-weight: 400;
+}
+.dashboard-metric strong {
+    font-size: clamp(32px, 2.7vw, 50px);
+    line-height: 1;
+    font-weight: 700;
+}
+.dashboard-metric small { font-size: inherit; }
+.metric-blue { border-color: #60a5fa; background: #eff6ff; color: #104679; }
+.metric-green { border-color: #3bce98; background: #ebfaf3; color: #085743; }
+.metric-amber { border-color: #f59e0b; background: #fff8ec; color: #753f0a; }
+.metric-pink { border-color: #ec4987; background: #fff0f3; color: #78263f; }
+.dashboard-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.48fr) minmax(0, 1fr);
+    gap: 29px;
+}
+.dashboard-panel {
+    min-height: clamp(560px, 67vh, 890px);
+    box-sizing: border-box;
+    border: 2px solid #b6b3a9;
+    border-radius: 12px;
+    padding: 26px 36px 24px;
+    background: #fff;
+    min-width: 0;
+}
+.dashboard-panel h2 {
+    font-size: clamp(20px, 1.45vw, 27px);
+    font-weight: 700;
+    margin: 0;
+    color: #2f2f30;
+}
+.panel-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+.live-panel { display: flex; flex-direction: column; }
+.dashboard-table-scroll {
+    max-height: 500px;
+    overflow: auto;
+    width: 100%;
+}
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: clamp(14px, 1.05vw, 19px);
+}
+.dashboard-table th {
+    background: #f0efe9;
+    color: #535250;
+    font-weight: 400;
+    text-align: left;
+    padding: 18px 20px;
+}
+.dashboard-table td {
+    padding: 16px 20px;
+    border: 1px solid #dddcd6;
+    height: 33px;
+    overflow-wrap: anywhere;
+}
+.dashboard-table th:first-child { border-radius: 5px 0 0 0; width: 18%; }
+.dashboard-table th:nth-child(2) { width: 36%; }
+.dashboard-table th:nth-child(3) { width: 23%; }
+.dashboard-table th:last-child { border-radius: 0 5px 0 0; width: 23%; }
+.dashboard-no-tickets { color: #7c7b74; text-align: center; }
+.ticket-pill {
+    display: inline-block;
+    min-width: 105px;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 30px;
+    padding: 7px 15px;
+    font-size: 0.84em;
+    white-space: nowrap;
+}
+.pill-serving { background: #eaf5df; color: #345a18; }
+.pill-notified { background: #fff4e5; color: #7b4b19; }
+.pill-waiting { background: #f1f0eb; color: #55544f; }
+.queue-paused-pill {
+    border-radius: 30px;
+    padding: 7px 14px;
+    background: #fff2e0;
+    color: #92400e;
+}
+.dashboard-action-area { margin-top: auto; padding-top: 28px; }
+.dashboard-buttons { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; }
+.dashboard-buttons form { margin: 0; }
+.dashboard-primary-btn, .dashboard-outline-btn {
+    min-height: 70px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: clamp(16px, 1.1vw, 21px);
+    cursor: pointer;
+    padding: 13px 38px;
+}
+.dashboard-primary-btn {
+    min-width: 319px;
+    background: #0f497f;
+    color: #fff;
+    border: 2px solid #0f497f;
+    font-weight: 700;
+}
+.dashboard-outline-btn {
+    min-width: 254px;
+    border: 2px solid #988aff;
+    background: #fff;
+    color: #302d50;
+}
+.dashboard-primary-btn:hover:not(:disabled) { background: #0a3760; }
+.dashboard-outline-btn:hover { background: #f4f1ff; }
+.dashboard-primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.dashboard-data-note {
+    color: #85817c;
+    font-size: 12px;
+    margin: 12px 0 0;
+}
+.dashboard-flash {
+    margin: -16px 0 22px;
+    padding: 13px 18px;
+    border-radius: 8px;
+    background: #f2f0ff;
+    color: #31275f;
+    border: 1px solid #cbc4f3;
+}
+.analytics-panel { padding: 26px 36px; }
+.analytics-subtitle {
+    font-size: clamp(14px, 1.05vw, 19px);
+    color: #918f89;
+    margin: 11px 0 0;
+}
+.dashboard-chart { margin: 82px 0 38px; }
+.chart-columns {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    align-items: end;
+    height: 260px;
+    gap: 19px;
+    padding: 0 13px 6px;
+    border-bottom: 2px solid #c7c5be;
+}
+.chart-column { height: 100%; display: flex; align-items: end; justify-content: center; }
+.chart-bar { width: 100%; max-width: 76px; min-height: 3px; }
+.bar-light { background: #86b7e9; }
+.bar-strong { background: #3689d9; }
+.chart-axis-labels {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 19px;
+    text-align: center;
+    margin-top: 15px;
+    color: #98968e;
+    font-size: 15px;
+}
+.analytics-facts { margin-top: 18px; }
+.analytics-fact-label {
+    color: #97938c;
+    font-size: clamp(15px, 1.1vw, 19px);
+    margin: 27px 0 16px;
+}
+.analytics-fact-value {
+    background: #f1efe9;
+    border-radius: 5px;
+    color: #514f4a;
+    font-size: clamp(15px, 1vw, 18px);
+    margin: 0;
+    padding: 12px 21px;
+}
+@media (max-width: 1200px) {
+    .dashboard-metrics { gap: 12px; }
+    .dashboard-metric { padding: 25px 20px; }
+    .dashboard-panel { padding: 24px; }
+    .dashboard-content-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+    .dashboard-table th, .dashboard-table td { padding: 12px; }
+    .ticket-pill { min-width: 0; }
+    .dashboard-primary-btn, .dashboard-outline-btn { min-width: 0; }
+    .dashboard-buttons { gap: 12px; }
+}
+@media (max-width: 860px) {
+    .biz-dashboard { padding: 0 16px; margin: 16px auto; }
+    .dashboard-topbar { flex-direction: column; align-items: flex-start; padding: 20px; }
+    .dashboard-header-actions { width: 100%; justify-content: space-between; gap: 12px; }
+    .dashboard-language, .dashboard-clinic { font-size: 15px; min-height: 42px; }
+    .dashboard-clinic { min-width: 0; }
+    .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 16px 0; }
+    .dashboard-metric { min-height: 135px; }
+    .dashboard-content-grid { grid-template-columns: 1fr; }
+    .dashboard-panel { min-height: 0; }
+    .live-panel { min-height: 430px; }
+    .dashboard-chart { margin: 42px 0 25px; }
+}
+@media (max-width: 500px) {
+    .dashboard-topbar h1 { font-size: 23px; }
+    .dashboard-metric { padding: 18px 13px; }
+    .dashboard-metric strong { font-size: 34px; }
+    .metric-caption { font-size: 14px; }
+    .dashboard-table { font-size: 12px; }
+    .dashboard-table th, .dashboard-table td { padding: 9px 5px; }
+    .ticket-pill { padding: 5px 8px; font-size: 11px; }
+    .dashboard-buttons { display: grid; grid-template-columns: 1fr; }
+    .dashboard-primary-btn, .dashboard-outline-btn { width: 100%; min-height: 52px; }
+    .chart-columns { gap: 8px; height: 200px; }
+    .chart-axis-labels { gap: 8px; font-size: 11px; }
+}

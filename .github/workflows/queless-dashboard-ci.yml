@@ -1,0 +1,71 @@
+name: QueLess dashboard build and smoke test
+
+on:
+  push:
+    branches:
+      - feature/business-dashboard-screenshot-20261116
+  pull_request:
+    paths:
+      - "queless-webapp/**"
+      - "Dockerfile"
+      - ".github/workflows/queless-dashboard-ci.yml"
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: queless-webapp/pom.xml
+
+      - name: Compile and package the web app
+        run: mvn -B -f queless-webapp/pom.xml clean package
+
+      - name: Build Render-equivalent Docker image
+        run: docker build -t queless-dashboard-test .
+
+      - name: Start QueLess
+        run: docker run -d --name queless-ci -p 8080:8080 queless-dashboard-test
+
+      - name: Test dashboard, language, queue pause and serving states
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:8080/dashboard -o /tmp/dashboard.html; then
+              break
+            fi
+            sleep 3
+          done
+          grep -q 'QueLess Business Dashboard' /tmp/dashboard.html
+          grep -q 'Waiting patients' /tmp/dashboard.html
+          grep -q 'Live queue monitor' /tmp/dashboard.html
+          grep -q 'Analytics' /tmp/dashboard.html
+
+          curl -fsS 'http://localhost:8080/language?lang=tn&returnTo=/dashboard'             -o /dev/null -c /tmp/lang-cookies.txt -b /tmp/lang-cookies.txt
+          curl -fsS http://localhost:8080/dashboard -b /tmp/lang-cookies.txt -o /tmp/setswana.html
+          grep -q 'Boto ya Kgwebo ya QueLess' /tmp/setswana.html
+
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=pause http://localhost:8080/togglequeue)" = "302"
+          curl -fsS http://localhost:8080/joinqueue -o /tmp/paused-join.html
+          grep -q 'currently paused' /tmp/paused-join.html
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
+          curl -fsS http://localhost:8080/dashboard -o /tmp/paused-dashboard.html
+          grep -q '>0<' /tmp/paused-dashboard.html
+
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=resume http://localhost:8080/togglequeue)" = "302"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
+          curl -fsS http://localhost:8080/dashboard -o /tmp/joined-dashboard.html
+          grep -q 'SmokeTest' /tmp/joined-dashboard.html
+
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             http://localhost:8080/callnext)" = "302"
+          curl -fsS http://localhost:8080/dashboard -o /tmp/serving-dashboard.html
+          grep -q 'Serving' /tmp/serving-dashboard.html
+
+      - name: Print container logs on failure
+        if: failure()
+        run: docker logs queless-ci || true
