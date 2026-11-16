@@ -30,7 +30,9 @@ public class JoinQueueServlet extends HttpServlet {
                 2L, queueManager.getQueueStatus(2L).size(),
                 3L, queueManager.getQueueStatus(3L).size()
         ));
-        req.getRequestDispatcher("/join.jsp").forward(req, resp);
+        req.setAttribute("business", queueManager.getAllBusinesses().stream().findFirst().orElse(null));
+        resp.setHeader("Cache-Control", "no-store");
+        req.getRequestDispatcher("/WEB-INF/views/patient-dashboard.jsp").forward(req, resp);
     }
 
     @Override protected void doPost(HttpServletRequest req, HttpServletResponse resp)
