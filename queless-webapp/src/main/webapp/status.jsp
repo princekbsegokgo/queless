@@ -3,7 +3,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ include file="/WEB-INF/includes/header.jspf" %>
 <c:if test="${ticket.status ne 'SERVED' and ticket.status ne 'CANCELLED'}">
-    <meta http-equiv="refresh" content="6">
+    <script>window.setTimeout(function () { window.location.reload(); }, 6000);</script>
 </c:if>
 
 <section class="portal-intro compact-intro">
