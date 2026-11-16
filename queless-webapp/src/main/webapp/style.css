@@ -892,3 +892,49 @@ input[type="text"] {
     .patient-dashboard-page .dashboard-table td { font-size: 12px; }
     .patient-panel-intro { font-size: 15px; }
 }
+
+
+/* Shared dashboard switcher: same buttons on both customer and staff pages. */
+.dashboard-header-actions { flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+.dashboard-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dashboard-nav-link {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 9px 15px;
+    border: 1.5px solid #8c82eb;
+    border-radius: 7px;
+    background: #fff;
+    color: #302e50;
+    text-decoration: none;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+}
+.dashboard-nav-link:hover,
+.dashboard-nav-link:focus-visible { background: #ece9ff; }
+.dashboard-nav-link.is-active,
+.dashboard-nav-link[aria-current="page"] {
+    background: #43378b;
+    border-color: #43378b;
+    color: #fff;
+}
+.dashboard-nav-link.is-active:hover,
+.dashboard-nav-link.is-active:focus-visible { background: #332768; }
+@media (max-width: 860px) {
+    .dashboard-header-actions { justify-content: flex-start; }
+    .dashboard-nav-link { min-height: 42px; font-size: 14px; padding: 8px 11px; }
+}
+@media (max-width: 500px) {
+    .dashboard-nav { width: 100%; }
+    .dashboard-nav-link { flex: 1 1 auto; }
+}
