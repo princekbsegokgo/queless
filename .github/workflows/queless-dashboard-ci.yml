@@ -47,6 +47,9 @@ jobs:
           # Staff portal opens the exact dashboard without a password.
           curl -fsS -b /tmp/staff.cookie -c /tmp/staff.cookie http://localhost:8080/dashboard -o /tmp/staff.html
           grep -q 'QueLess Business Dashboard' /tmp/staff.html
+          grep -q 'href="/joinqueue"' /tmp/staff.html
+          grep -q 'Staff Dashboard' /tmp/staff.html
+          grep -q 'Customer Dashboard' /tmp/staff.html
           grep -q 'Live queue monitor' /tmp/staff.html
           grep -q 'Analytics' /tmp/staff.html
           grep -q 'Active queues' /tmp/staff.html
@@ -68,6 +71,9 @@ jobs:
           # Existing patient view works from a completely different browser session.
           curl -fsS -b /tmp/patient.cookie -c /tmp/patient.cookie http://localhost:8080/joinqueue -o /tmp/join.html
           grep -q 'Pharmacy' /tmp/join.html
+          grep -q 'href="/dashboard"' /tmp/join.html
+          grep -q 'Customer Dashboard' /tmp/join.html
+          grep -q 'Staff Dashboard' /tmp/join.html
           PATIENT_CSRF="$(sed -n 's/.*name="_csrf" value="\([^"]*\)".*/\1/p' /tmp/join.html | head -n1)"
           test -n "$PATIENT_CSRF"
           TRACKING_URL="$(curl -s -o /dev/null -w '%{redirect_url}' -b /tmp/patient.cookie -c /tmp/patient.cookie \
