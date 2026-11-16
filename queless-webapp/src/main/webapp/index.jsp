@@ -4,27 +4,27 @@
 <%@ include file="/WEB-INF/includes/header.jspf" %>
 
 <section class="portal-intro">
-    <span class="eyebrow">A smarter way to wait</span>
-    <h1>Welcome to QueLess</h1>
-    <p>Join a clinic queue from your phone, see your position, and know when it is your turn.</p>
+    <span class="eyebrow"><fmt:message key="home.portalEyebrow" bundle="${msg}"/></span>
+    <h1><fmt:message key="home.welcome" bundle="${msg}"/></h1>
+    <p><fmt:message key="home.portalDescription" bundle="${msg}"/></p>
 </section>
 <section class="portal-choices" aria-label="Choose how to use QueLess">
     <article class="portal-choice patient-choice">
         <div class="portal-choice-icon" aria-hidden="true">01</div>
-        <h2>I'm a patient</h2>
-        <p>Choose a service, join a line, and track your ticket while you wait.</p>
-        <a class="portal-button" href="${pageContext.request.contextPath}/joinqueue">Join as a patient</a>
+        <h2><fmt:message key="home.patientTitle" bundle="${msg}"/></h2>
+        <p><fmt:message key="home.patientDescription" bundle="${msg}"/></p>
+        <a class="portal-button" href="${pageContext.request.contextPath}/joinqueue"><fmt:message key="home.patientButton" bundle="${msg}"/></a>
         <c:if test="${not empty sessionScope.myTicketToken}">
-            <a class="portal-text-link" href="${pageContext.request.contextPath}/status?ticket=${sessionScope.myTicketToken}">Track my current ticket</a>
+            <a class="portal-text-link" href="${pageContext.request.contextPath}/status?ticket=${sessionScope.myTicketToken}"><fmt:message key="home.trackTicket" bundle="${msg}"/></a>
         </c:if>
     </article>
     <article class="portal-choice staff-choice">
         <div class="portal-choice-icon" aria-hidden="true">02</div>
-        <h2>I'm clinic staff</h2>
-        <p>Sign in to call the next patient, complete a visit, and manage each queue.</p>
-        <a class="portal-button outline" href="${pageContext.request.contextPath}/staff/login">Staff sign in</a>
+        <h2><fmt:message key="home.staffTitle" bundle="${msg}"/></h2>
+        <p><fmt:message key="home.staffDescription" bundle="${msg}"/></p>
+        <a class="portal-button outline" href="${pageContext.request.contextPath}/staff/login"><fmt:message key="home.staffButton" bundle="${msg}"/></a>
     </article>
 </section>
-<p class="portal-disclaimer">QueLess currently runs as a demonstration. Do not enter medical details or emergencies here. For an emergency, contact the clinic or emergency services directly.</p>
+<p class="portal-disclaimer"><fmt:message key="home.demoNotice" bundle="${msg}"/></p>
 
 <%@ include file="/WEB-INF/includes/footer.jspf" %>
