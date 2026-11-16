@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ include file="/WEB-INF/includes/header.jspf" %>
+<fmt:message key="join.namePlaceholder" bundle="${msg}" var="namePlaceholder"/>
 
 <section class="portal-intro compact-intro">
     <span class="eyebrow"><fmt:message key="join.patientPortal" bundle="${msg}"/></span>
@@ -26,7 +27,7 @@
                     <span class="small-label"><fmt:message key="join.department" bundle="${msg}"/></span>
                     <h2><c:out value="${queue.name}"/></h2>
                 </div>
-                <span class="queue-availability ${queue.open ? 'is-open' : 'is-paused'}">${queue.open ? 'Open' : 'Paused'}</span>
+                <span class="queue-availability ${queue.open ? 'is-open' : 'is-paused'}"><c:choose><c:when test="${queue.open}"><fmt:message key="join.open" bundle="${msg}"/></c:when><c:otherwise><fmt:message key="join.queuePaused" bundle="${msg}"/></c:otherwise></c:choose></span>
             </div>
             <p class="queue-counter"><strong>${waitingByQueue[queue.queueId]}</strong> <fmt:message key="join.peopleWaiting" bundle="${msg}"/></p>
             <c:choose>
@@ -36,7 +37,7 @@
                         <input type="hidden" name="_csrf" value="${csrfToken}">
                         <label for="name-${queue.queueId}"><fmt:message key="join.yourName" bundle="${msg}"/></label>
                         <input id="name-${queue.queueId}" type="text" name="userName" maxlength="80"
-                            autocomplete="name" placeholder="Enter your name" required>
+                            autocomplete="name" placeholder="${namePlaceholder}" required>
                         <button class="portal-button" type="submit"><fmt:message key="join.getTicket" bundle="${msg}"/></button>
                     </form>
                 </c:when>
