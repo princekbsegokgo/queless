@@ -1,9 +1,10 @@
-name: QueLess dashboard build and smoke test
+name: QueLess portals build and smoke tests
 
 on:
   push:
     branches:
-      - feature/business-dashboard-screenshot-20261116
+      - main
+      - feature/patient-staff-portals-20261116
   pull_request:
     paths:
       - "queless-webapp/**"
@@ -22,50 +23,80 @@ jobs:
           cache: maven
           cache-dependency-path: queless-webapp/pom.xml
 
-      - name: Compile and package the web app
+      - name: Compile and package web app
         run: mvn -B -f queless-webapp/pom.xml clean package
 
       - name: Build Render-equivalent Docker image
-        run: docker build -t queless-dashboard-test .
+        run: docker build -t queless-portal-test .
 
-      - name: Start QueLess
-        run: docker run -d --name queless-ci -p 8080:8080 queless-dashboard-test
+      - name: Start QueLess with a test-only staff password
+        run: docker run -d --name queless-ci -p 8080:8080 -e QUELESS_STAFF_PASSWORD=smoketest-secret queless-portal-test
 
-      - name: Test dashboard, language, queue pause and serving states
+      - name: Test patient and staff journeys
         shell: bash
         run: |
           set -euo pipefail
-          for i in $(seq 1 40); do
-            if curl -fsS http://localhost:8080/dashboard -o /tmp/dashboard.html; then
-              break
-            fi
-            sleep 3
+          for i in $(seq 1 50); do
+            if curl -fsS http://localhost:8080/ -o /tmp/home.html; then break; fi
+            sleep 2
           done
-          grep -q 'QueLess Business Dashboard' /tmp/dashboard.html
-          grep -q 'Waiting patients' /tmp/dashboard.html
-          grep -q 'Live queue monitor' /tmp/dashboard.html
-          grep -q 'Analytics' /tmp/dashboard.html
+          grep -q "I'm a patient" /tmp/home.html
+          grep -q "I'm clinic staff" /tmp/home.html
 
-          curl -fsS 'http://localhost:8080/language?lang=tn&returnTo=/dashboard'             -o /dev/null -c /tmp/lang-cookies.txt -b /tmp/lang-cookies.txt
-          curl -fsS http://localhost:8080/dashboard -b /tmp/lang-cookies.txt -o /tmp/setswana.html
-          grep -q 'Boto ya Kgwebo ya QueLess' /tmp/setswana.html
+          # Staff-only routes reject unauthenticated requests.
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/dashboard)" = "302"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/callnext)" = "403"
 
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=pause http://localhost:8080/togglequeue)" = "302"
-          curl -fsS http://localhost:8080/joinqueue -o /tmp/paused-join.html
-          grep -q 'currently paused' /tmp/paused-join.html
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
-          curl -fsS http://localhost:8080/dashboard -o /tmp/paused-dashboard.html
-          grep -q '>0<' /tmp/paused-dashboard.html
+          # Patient chooses Pharmacy and receives a private, opaque tracking URL.
+          curl -fsS -c /tmp/patient.cookie -b /tmp/patient.cookie http://localhost:8080/joinqueue -o /tmp/join.html
+          grep -q 'General Consultation' /tmp/join.html
+          grep -q 'Pharmacy' /tmp/join.html
+          grep -q 'Laboratory' /tmp/join.html
+          PATIENT_CSRF="$(sed -n 's/.*name="_csrf" value="\([^"]*\)".*/\1/p' /tmp/join.html | head -n1)"
+          test -n "$PATIENT_CSRF"
+          TICKET_URL="$(curl -s -o /dev/null -w '%{redirect_url}' -b /tmp/patient.cookie -c /tmp/patient.cookie -d "queueId=2" --data-urlencode "userName=Smoke Patient" --data-urlencode "_csrf=$PATIENT_CSRF" http://localhost:8080/joinqueue)"
+          [[ "$TICKET_URL" == *"/status?ticket="* ]]
+          curl -fsS -b /tmp/patient.cookie "$TICKET_URL" -o /tmp/patient-status.html
+          grep -q 'Smoke Patient' /tmp/patient-status.html
+          grep -q 'People ahead' /tmp/patient-status.html
+          grep -q 'cancel ticket' /tmp/patient-status.html
 
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d action=resume http://localhost:8080/togglequeue)" = "302"
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             -d 'queueId=1&userName=SmokeTest' http://localhost:8080/joinqueue)" = "302"
-          curl -fsS http://localhost:8080/dashboard -o /tmp/joined-dashboard.html
-          grep -q 'SmokeTest' /tmp/joined-dashboard.html
+          # Staff uses a different session and signs in with CSRF protection.
+          curl -fsS -c /tmp/staff.cookie -b /tmp/staff.cookie http://localhost:8080/staff/login -o /tmp/login.html
+          STAFF_CSRF="$(sed -n 's/.*name="_csrf" value="\([^"]*\)".*/\1/p' /tmp/login.html | head -n1)"
+          test -n "$STAFF_CSRF"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -c /tmp/staff.cookie --data-urlencode "_csrf=$STAFF_CSRF" --data-urlencode 'password=smoketest-secret' http://localhost:8080/staff/login)" = "302"
+          curl -fsS -b /tmp/staff.cookie 'http://localhost:8080/dashboard?queueId=2' -o /tmp/dashboard.html
+          grep -q 'Smoke Patient' /tmp/dashboard.html
+          grep -q 'Choose department' /tmp/dashboard.html
 
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST             http://localhost:8080/callnext)" = "302"
-          curl -fsS http://localhost:8080/dashboard -o /tmp/serving-dashboard.html
-          grep -q 'Serving' /tmp/serving-dashboard.html
+          # Staff calls the patient, then marks the visit completed.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -d "queueId=2" --data-urlencode "_csrf=$STAFF_CSRF" http://localhost:8080/callnext)" = "302"
+          curl -fsS -b /tmp/staff.cookie 'http://localhost:8080/dashboard?queueId=2' -o /tmp/serving.html
+          grep -q 'Serving' /tmp/serving.html
+          curl -fsS -b /tmp/patient.cookie "$TICKET_URL" -o /tmp/called.html
+          grep -q "It's your turn" /tmp/called.html
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -d "queueId=2" --data-urlencode "_csrf=$STAFF_CSRF" http://localhost:8080/complete)" = "302"
+          curl -fsS -b /tmp/patient.cookie "$TICKET_URL" -o /tmp/completed.html
+          grep -q 'marked complete' /tmp/completed.html
 
-      - name: Print container logs on failure
+          # Pause/resume blocks then reopens a department.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -d "queueId=3&action=pause" --data-urlencode "_csrf=$STAFF_CSRF" http://localhost:8080/togglequeue)" = "302"
+          curl -fsS http://localhost:8080/joinqueue -o /tmp/paused.html
+          grep -q 'Paused' /tmp/paused.html
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -d "queueId=3&action=resume" --data-urlencode "_csrf=$STAFF_CSRF" http://localhost:8080/togglequeue)" = "302"
+
+          # A new ticket can be cancelled by its holder, without staff access.
+          NEW_URL="$(curl -s -o /dev/null -w '%{redirect_url}' -b /tmp/patient.cookie -c /tmp/patient.cookie -d "queueId=3" --data-urlencode "userName=Second Patient" --data-urlencode "_csrf=$PATIENT_CSRF" http://localhost:8080/joinqueue)"
+          [[ "$NEW_URL" == *"/status?ticket="* ]]
+          TOKEN="${NEW_URL##*ticket=}"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/patient.cookie -d "ticket=$TOKEN" --data-urlencode "_csrf=$PATIENT_CSRF" http://localhost:8080/cancel)" = "302"
+          curl -fsS "$NEW_URL" -o /tmp/cancelled.html
+          grep -q 'has been cancelled' /tmp/cancelled.html
+
+          # Missing CSRF token cannot advance the queue, even if signed in.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/staff.cookie -d 'queueId=2' http://localhost:8080/callnext)" = "403"
+
+      - name: Print logs if test fails
         if: failure()
         run: docker logs queless-ci || true
