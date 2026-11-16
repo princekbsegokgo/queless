@@ -24,14 +24,18 @@
         </c:if>
     </nav>
     <div class="header-extras">
+        <c:set var="localeReturnTo" value="/index.jsp"/>
+        <c:if test="${not empty queues}"><c:set var="localeReturnTo" value="/joinqueue"/></c:if>
+        <c:if test="${not empty ticket}"><c:set var="localeReturnTo" value="/status"/></c:if>
+        <c:if test="${requestScope.staffConfigured ne null}"><c:set var="localeReturnTo" value="/staff/login"/></c:if>
         <c:url var="englishLink" value="/language">
             <c:param name="lang" value="en"/>
-            <c:param name="returnTo" value="${pageContext.request.servletPath}"/>
+            <c:param name="returnTo" value="${localeReturnTo}"/>
             <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
         </c:url>
         <c:url var="setswanaLink" value="/language">
             <c:param name="lang" value="tn"/>
-            <c:param name="returnTo" value="${pageContext.request.servletPath}"/>
+            <c:param name="returnTo" value="${localeReturnTo}"/>
             <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
         </c:url>
         <div class="lang-switch">
