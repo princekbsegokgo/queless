@@ -24,10 +24,20 @@
         </c:if>
     </nav>
     <div class="header-extras">
+        <c:url var="englishLink" value="/language">
+            <c:param name="lang" value="en"/>
+            <c:param name="returnTo" value="${pageContext.request.servletPath}"/>
+            <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
+        </c:url>
+        <c:url var="setswanaLink" value="/language">
+            <c:param name="lang" value="tn"/>
+            <c:param name="returnTo" value="${pageContext.request.servletPath}"/>
+            <c:if test="${not empty ticket.accessToken}"><c:param name="ticket" value="${ticket.accessToken}"/></c:if>
+        </c:url>
         <div class="lang-switch">
-            <a href="${pageContext.request.contextPath}/language?lang=en&amp;returnTo=/index.jsp">EN</a>
+            <a href="${englishLink}">EN</a>
             <span>/</span>
-            <a href="${pageContext.request.contextPath}/language?lang=tn&amp;returnTo=/index.jsp">TSW</a>
+            <a href="${setswanaLink}">TSW</a>
         </div>
         <a class="staff-link" href="${pageContext.request.contextPath}/staff/login">Staff portal</a>
     </div>
