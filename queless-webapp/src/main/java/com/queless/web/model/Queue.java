@@ -1,12 +1,7 @@
 package com.queless.web.model;
 
-/**
- * A single queue belonging to a business (e.g. "General Consultation").
- * Corresponds to the "Queue" entity in Figure 3 (ERD).
- * Supports RQ01 (join remotely) and RQ03 (business manages queues).
- */
+/** One queue operated by a clinic or other business. */
 public class Queue {
-
     private final long queueId;
     private final long businessId;
     private final String name;
@@ -17,8 +12,8 @@ public class Queue {
         this.queueId = queueId;
         this.businessId = businessId;
         this.name = name;
-        this.currentServingPosition = 0;
-        this.open = true;
+        currentServingPosition = 0;
+        open = true;
     }
 
     public long getQueueId() { return queueId; }
@@ -27,6 +22,13 @@ public class Queue {
     public int getCurrentServingPosition() { return currentServingPosition; }
     public boolean isOpen() { return open; }
 
-    public void advanceServingPosition() { this.currentServingPosition++; }
+    public void setCurrentServingPosition(int position) {
+        currentServingPosition = position;
+    }
+
+    public void advanceServingPosition() {
+        currentServingPosition++;
+    }
+
     public void setOpen(boolean open) { this.open = open; }
 }
