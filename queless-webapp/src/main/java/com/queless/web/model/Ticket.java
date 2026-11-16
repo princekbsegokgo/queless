@@ -1,37 +1,54 @@
 package com.queless.web.model;
 
+import java.time.Instant;
+
 /**
- * A user's reserved position in a queue.
- * Corresponds to the "Ticket" entity in Figure 3 (ERD).
- * Supports RQ01 (join remotely) and RQ02 (turn-based notification).
+ * An individual queue reservation, with timestamps for truthful dashboard metrics.
+ * Data is currently in-memory and resets when the application restarts.
  */
 public class Ticket {
-
-    public enum Status { WAITING, NOTIFIED, SERVED, CANCELLED }
+    public enum Status { WAITING, NOTIFIED, SERVING, SERVED, CANCELLED }
 
     private final long ticketId;
     private final long queueId;
     private final String userName;
     private final int position;
+    private final Instant joinedAt;
+    private volatile Instant calledAt;
+    private volatile Instant servedAt;
     private volatile Status status;
-    private volatile String lastNotificationMessage; // supports RQ02 display in status.jsp
+    private volatile String lastNotificationMessage;
 
     public Ticket(long ticketId, long queueId, String userName, int position) {
         this.ticketId = ticketId;
         this.queueId = queueId;
         this.userName = userName;
         this.position = position;
+        this.joinedAt = Instant.now();
         this.status = Status.WAITING;
-        this.lastNotificationMessage = null;
     }
 
     public long getTicketId() { return ticketId; }
     public long getQueueId() { return queueId; }
     public String getUserName() { return userName; }
     public int getPosition() { return position; }
+    public Instant getJoinedAt() { return joinedAt; }
+    public Instant getCalledAt() { return calledAt; }
+    public Instant getServedAt() { return servedAt; }
     public Status getStatus() { return status; }
     public String getLastNotificationMessage() { return lastNotificationMessage; }
 
-    public void setStatus(Status status) { this.status = status; }
-    public void setLastNotificationMessage(String message) { this.lastNotificationMessage = message; }
+    public void setStatus(Status nextStatus) {
+        if (nextStatus == Status.SERVING && calledAt == null) {
+            calledAt = Instant.now();
+        }
+        if (nextStatus == Status.SERVED && servedAt == null) {
+            servedAt = Instant.now();
+        }
+        status = nextStatus;
+    }
+
+    public void setLastNotificationMessage(String message) {
+        lastNotificationMessage = message;
+    }
 }
