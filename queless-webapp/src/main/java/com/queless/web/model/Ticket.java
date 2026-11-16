@@ -1,6 +1,8 @@
 package com.queless.web.model;
 
 import java.time.Instant;
+import java.security.SecureRandom;
+import java.util.Base64;
 
 /**
  * An individual queue reservation, with timestamps for truthful dashboard metrics.
@@ -9,6 +11,8 @@ import java.time.Instant;
 public class Ticket {
     public enum Status { WAITING, NOTIFIED, SERVING, SERVED, CANCELLED }
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private final String accessToken;
     private final long ticketId;
     private final long queueId;
     private final String userName;
@@ -20,6 +24,9 @@ public class Ticket {
     private volatile String lastNotificationMessage;
 
     public Ticket(long ticketId, long queueId, String userName, int position) {
+        byte[] tokenBytes = new byte[24];
+        RANDOM.nextBytes(tokenBytes);
+        this.accessToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
         this.ticketId = ticketId;
         this.queueId = queueId;
         this.userName = userName;
@@ -28,6 +35,7 @@ public class Ticket {
         this.status = Status.WAITING;
     }
 
+    public String getAccessToken() { return accessToken; }
     public long getTicketId() { return ticketId; }
     public long getQueueId() { return queueId; }
     public String getUserName() { return userName; }
