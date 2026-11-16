@@ -43,7 +43,7 @@
             <span>/</span>
             <a href="${setswanaLink}">TSW</a>
         </div>
-        <a class="staff-link" href="${pageContext.request.contextPath}/staff/login"><fmt:message key="nav.staff" bundle="${msg}"/></a>
+        <a class="staff-link" href="${pageContext.request.contextPath}/dashboard"><fmt:message key="nav.staff" bundle="${msg}"/></a>
     </div>
 </header>
 <main class="content portal-content">
