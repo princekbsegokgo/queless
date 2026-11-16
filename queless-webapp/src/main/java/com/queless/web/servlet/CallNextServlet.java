@@ -12,7 +12,6 @@ import java.io.IOException;
 @WebServlet("/callnext")
 public class CallNextServlet extends HttpServlet {
     private QueueManager queueManager;
-    private static final long DEMO_QUEUE_ID = 1L;
 
     @Override
     public void init() {
@@ -23,8 +22,11 @@ public class CallNextServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        boolean advanced = queueManager.callNextTicket(DEMO_QUEUE_ID);
+        long queueId;
+        try { queueId = Long.parseLong(req.getParameter("queueId")); }
+        catch (Exception e) { resp.sendError(400, "Choose a queue"); return; }
+        boolean advanced = queueManager.callNextTicket(queueId);
         resp.sendRedirect(req.getContextPath()
-                + "/dashboard?result=" + (advanced ? "called" : "noNext"));
+                + "/dashboard?queueId=" + queueId + "&result=" + (advanced ? "called" : "noNext"));
     }
 }
