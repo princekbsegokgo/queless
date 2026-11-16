@@ -20,7 +20,6 @@
     <header class="dashboard-topbar">
         <h1><fmt:message key="dashboard.fullTitle" bundle="${msg}" /></h1>
         <div class="dashboard-header-actions">
-            <a class="staff-utility-link" href="${pageContext.request.contextPath}/joinqueue">Patient view</a>
             <div class="dashboard-language" aria-label="Language">
                 <a href="${pageContext.request.contextPath}/language?lang=en&amp;returnTo=/dashboard"
                    class="${sessionScope.lang eq 'en' ? 'selected' : ''}" lang="en">EN</a>
@@ -31,10 +30,6 @@
             <span class="dashboard-clinic" title="Clinic currently configured in this demo">
                 <c:out value="${business.name}" />
             </span>
-            <form method="post" action="${pageContext.request.contextPath}/staff/logout" class="staff-logout-form">
-                <input type="hidden" name="_csrf" value="${csrfToken}">
-                <button type="submit" class="staff-utility-link">Log out</button>
-            </form>
         </div>
     </header>
 
@@ -72,15 +67,12 @@
         </c:when>
     </c:choose>
 
-    <form class="department-selector" method="get" action="${pageContext.request.contextPath}/dashboard">
-        <label for="staffQueue">Choose department / queue</label>
-        <select id="staffQueue" name="queueId" onchange="this.form.submit()">
-            <c:forEach var="option" items="${queues}">
-                <option value="${option.queueId}" ${option.queueId eq selectedQueueId ? 'selected' : ''}><c:out value="${option.name}"/></option>
-            </c:forEach>
-        </select>
-        <noscript><button type="submit" class="dashboard-outline-btn">View queue</button></noscript>
-    </form>
+    <c:if test="${param.result eq 'demoLoaded'}">
+        <p class="dashboard-flash" role="status">Sample patients have been added to the selected queue.</p>
+    </c:if>
+    <c:if test="${param.result eq 'demoSkipped'}">
+        <p class="dashboard-flash" role="status">This queue already has patients, or it is paused. Use the existing queue.</p>
+    </c:if>
 
     <c:if test="${param.result eq 'completed'}">
         <p class="dashboard-flash" role="status">Service completed. Ready to call the next patient.</p>
@@ -90,7 +82,22 @@
         <div class="dashboard-panel live-panel">
             <div class="panel-title-wrap">
                 <h2><fmt:message key="dashboard.liveMonitor" bundle="${msg}" /></h2>
-                <span class="selected-department"><c:out value="${queue.name}" /></span>
+                <div class="dashboard-panel-tools">
+                    <form class="dashboard-mini-select" method="get" action="${pageContext.request.contextPath}/dashboard">
+                        <label for="staffQueue">Department</label>
+                        <select id="staffQueue" name="queueId" onchange="this.form.submit()">
+                            <c:forEach var="option" items="${queues}">
+                                <option value="${option.queueId}" ${option.queueId eq selectedQueueId ? 'selected' : ''}><c:out value="${option.name}"/></option>
+                            </c:forEach>
+                        </select>
+                        <noscript><button type="submit">View</button></noscript>
+                    </form>
+                    <form action="${pageContext.request.contextPath}/demo/load" method="post" class="dashboard-demo-form">
+                        <input type="hidden" name="queueId" value="${queue.queueId}">
+                        <input type="hidden" name="_csrf" value="${csrfToken}">
+                        <button type="submit" title="Add four sample tickets for a class demonstration">Load demo patients</button>
+                    </form>
+                </div>
                 <c:if test="${not queue.open}">
                     <span class="queue-paused-pill"><fmt:message key="dashboard.paused" bundle="${msg}" /></span>
                 </c:if>
