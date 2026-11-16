@@ -45,7 +45,7 @@
                     <strong>${estimatedWaitMinutes} min</strong>
                 </div>
             </div>
-            <p class="ticket-status-note">Staff is currently serving ticket #${nowServing}. <fmt:message key="status.keepOpen" bundle="${msg}"/></p>
+            <p class="ticket-status-note"><fmt:message key="status.nowServingNotice" bundle="${msg}"><fmt:param value="${nowServing}"/></fmt:message> <fmt:message key="status.keepOpen" bundle="${msg}"/></p>
             <c:if test="${not empty ticket.lastNotificationMessage}">
                 <p class="portal-notice" role="status"><c:out value="${ticket.lastNotificationMessage}"/></p>
             </c:if>
