@@ -20,6 +20,11 @@
     <header class="dashboard-topbar">
         <h1><fmt:message key="dashboard.fullTitle" bundle="${msg}" /></h1>
         <div class="dashboard-header-actions">
+            <nav class="dashboard-nav" aria-label="Dashboard navigation">
+                <a class="dashboard-nav-link" href="${pageContext.request.contextPath}/"><fmt:message key="nav.home" bundle="${msg}"/></a>
+                <a class="dashboard-nav-link ${''}" href="${pageContext.request.contextPath}/joinqueue" ><fmt:message key="nav.customerDashboard" bundle="${msg}"/></a>
+                <a class="dashboard-nav-link ${'is-active'}" href="${pageContext.request.contextPath}/dashboard" aria-current="page"><fmt:message key="nav.staffDashboard" bundle="${msg}"/></a>
+            </nav>
             <div class="dashboard-language" aria-label="Language">
                 <a href="${pageContext.request.contextPath}/language?lang=en&amp;returnTo=/dashboard"
                    class="${sessionScope.lang eq 'en' ? 'selected' : ''}" lang="en">EN</a>
