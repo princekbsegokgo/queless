@@ -1,60 +1,46 @@
-# QueLess — Digital Clinic Queue Demonstration
+# QueLess — Clinic Queue Showcase
 
-QueLess lets clinic visitors join a queue from their phone, track their place in line, and see when staff call them. Clinic staff have a **separate, password-protected portal**.
+A simple web demonstration with two separate experiences:
 
-## How to use
+- **Patient page:** join a queue, view a ticket and waiting estimate, and see when staff call you.
+- **Staff dashboard:** the original four-colour-card business dashboard with a live queue table, analytics and working buttons.
 
-### Patients (no login needed)
-1. Open the site at `https://queless-rvbn.onrender.com/`.
-2. Choose **I'm a patient** or open `/joinqueue` directly.
-3. Choose **General Consultation**, **Pharmacy**, or **Laboratory**.
-4. Enter a display name and choose **Get my queue ticket**.
-5. Keep the automatically generated private `/status?ticket=...` link.
-6. The ticket updates every six seconds, showing people ahead, estimated waiting time, and whether staff have called you.
-7. You can cancel a ticket while still waiting. You cannot cancel after being called.
+This is intentionally a **class project demo**, not a live healthcare service.
 
-The QR code pointing to the site's homepage stays valid when these pages change.
+## How to demonstrate in two browsers
 
-### Staff (password required)
-1. Open `https://queless-rvbn.onrender.com/staff/login`.
-2. Enter the private staff password.
-3. Select the relevant department on the business dashboard.
-4. **Call next ticket** to call a waiting patient. If a patient is currently being served, this button finishes their service and calls the next one.
-5. **Complete service** to finish a visit without calling another patient.
-6. **Pause queue** to stop new patients joining and prevent further calls. **Resume queue** opens it again.
-7. **Log out** when done.
+1. Open the homepage: https://queless-rvbn.onrender.com/
+2. In browser A select **I'm a patient**, then choose General Consultation, Pharmacy or Laboratory.
+3. Enter your name and click **Get my queue ticket**. Keep the ticket page open.
+4. In browser B select **I'm clinic staff**. It opens **/dashboard** directly, without a password or extra login screen.
+5. On the business dashboard, select the same department, then click **Call next ticket**. The patient's ticket page updates automatically.
+6. Click **Complete service** to mark the visit finished. **Pause queue** stops new joins to the selected department; **Resume queue** reopens it.
 
-**Required Render setup before staff sign-in works:** In Render, open the QueLess web service → **Environment** → add an environment variable named `QUELESS_STAFF_PASSWORD` with a strong, unique secret you choose → save and redeploy. Do **not** put that password into GitHub source code. There is deliberately no default staff password.
+For a quicker presentation, staff can click **Load demo patients** on an empty queue: this adds four example names to that department and marks the first as serving. If a department already has active tickets, it won't add duplicates.
 
-Local testing is possible using Java 21 and Maven; for staff login set `QUELESS_STAFF_PASSWORD` in the local environment before starting the app. Do not use the CI test password for actual deployment.
+## Links
 
-## Where the pages live
-
-| Purpose | Route |
+| Page | Link |
 | --- | --- |
-| Choose patient/staff | `/` |
-| Patient queue selection | `/joinqueue` |
-| Private patient ticket | `/status?ticket=<secret>` |
-| Staff login | `/staff/login` |
-| Staff dashboard | `/dashboard` |
-| Staff logout | POST `/staff/logout` |
+| Start / choose role | https://queless-rvbn.onrender.com/ |
+| Patient joins | https://queless-rvbn.onrender.com/joinqueue |
+| Staff dashboard | https://queless-rvbn.onrender.com/dashboard |
+| Old staff/login bookmark | https://queless-rvbn.onrender.com/staff/login (redirects to dashboard) |
 
-All staff queue action endpoints require staff login and a per-session CSRF token. Patient and staff sessions remain separate if you use different browsers/private browsing sessions.
+The existing QR code still points to the homepage, so it doesn't need to change.
 
-## Running this demo
+## Render setup
 
-The root `Dockerfile` builds `queless-webapp/` using Maven and runs the WAR in Tomcat 10.1. GitHub Actions compile the application and run integration smoke tests with a test-only staff password.
+No staff password or environment variable is required for showcase mode. Render needs to deploy the latest GitHub `main` commit. The repository's root `Dockerfile` compiles the Maven WAR and starts Tomcat.
 
-## Important current limitations
+## Important demo limitations
 
-- **Demo only.** All tickets and dashboard metrics are held in server memory. Deploys, Render restarts, and spinning up additional instances lose or split queue data. A persistent database and transaction-safe ticket handling must be added before a real clinic pilot.
-- The three departments are examples, not evidence that any named clinic is actively using QueLess.
-- No actual email, SMS, WhatsApp, or mobile push notifications. The ticket page checks the app automatically while it is open.
-- The "estimated waiting time" uses five minutes per person ahead, not a trained prediction; actual service times vary.
-- The password is one shared staff secret and the basic session login is suitable only for a **class project demo**. A real facility requires named staff accounts, strong authentication, role-based access, audit trails, rate limits and privacy controls.
-- Patient ticket links are private capabilities. Anyone with a link can see that ticket's display name and status; do not share links or enter diagnoses, identity numbers or other sensitive health details.
-- This application does not provide clinical triage or emergency services. Emergencies must be handled through regular clinical procedures.
+- **Staff functions are deliberately open to visitors for the class demo.** There are no staff accounts or logins. Use invented names only; do not deploy this version for actual clinic use.
+- Tickets and statistics live in memory. They reset whenever Render restarts or redeploys, and multiple instances would not share their queue state.
+- The three departments and sample patient names are illustrative.
+- The five-minute-per-person waiting estimate is approximate.
+- Ticket updates work by refreshing the page; there are no real SMS, WhatsApp or push messages.
+- Avoid sharing private ticket URLs or entering patient identifiers or sensitive health information.
+- This app does not provide emergency care or triage.
 
-## Recommended next upgrades
-
-Persistent PostgreSQL database; staff accounts and audit logs; queue transfer between departments; secure SMS/WhatsApp notification opt-in; reception-assisted ticket creation for patients without smartphones; accessibility and multilingual review; privacy and data-retention policy; service-time analytics and staffing reports.
+For actual clinic use later, add a persistent database, named staff accounts with authentication, audit logs, privacy rules, and reliable communications.

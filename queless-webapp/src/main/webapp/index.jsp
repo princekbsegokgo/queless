@@ -21,8 +21,8 @@
     <article class="portal-choice staff-choice">
         <div class="portal-choice-icon" aria-hidden="true">02</div>
         <h2><fmt:message key="home.staffTitle" bundle="${msg}"/></h2>
-        <p><fmt:message key="home.staffDescription" bundle="${msg}"/></p>
-        <a class="portal-button outline" href="${pageContext.request.contextPath}/staff/login"><fmt:message key="home.staffButton" bundle="${msg}"/></a>
+        <p>Call the next patient, manage the queue, and show live statistics. No login needed for this demo.</p>
+        <a class="portal-button outline" href="${pageContext.request.contextPath}/dashboard">Open staff dashboard</a>
     </article>
 </section>
 <p class="portal-disclaimer"><fmt:message key="home.demoNotice" bundle="${msg}"/></p>

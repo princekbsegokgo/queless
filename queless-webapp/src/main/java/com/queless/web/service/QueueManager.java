@@ -181,6 +181,25 @@ public class QueueManager {
         return true;
     }
 
+    /**
+     * Showcase-only helper. Add four recognizable sample names to an empty
+     * department and call the first ticket so the dashboard can be demonstrated
+     * without preparing four browsers. Never use this with real patients.
+     */
+    public synchronized boolean loadSampleTickets(long queueId) {
+        Queue queue = queues.get(queueId);
+        if (queue == null || !queue.isOpen()
+                || !getQueueStatus(queueId).isEmpty()
+                || getServingTicket(queueId).isPresent()) {
+            return false;
+        }
+        for (String name : new String[] {"T. Kgosi", "B. Mmusi", "K. Seleka", "N. Ditlhake"}) {
+            joinQueue(queueId, name);
+        }
+        callNextTicket(queueId);
+        return true;
+    }
+
     public synchronized boolean completeServingTicket(long queueId) {
         Optional<Ticket> active = getServingTicket(queueId);
         if (active.isEmpty()) return false;
